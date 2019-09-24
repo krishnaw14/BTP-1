@@ -25,6 +25,7 @@ class Discriminator(nn.Module):
 		self.hidden_dim = config['model']['discriminator']['hidden_dim']
 		self.out_dim = config['model']['discriminator']['out_dim']
 		self.num_layers = config['model']['discriminator']['num_layers'] # 5
+		self.bn = config['model']['discriminator']['bn']
 		self.module_list = nn.ModuleList()
 		for i in range(self.num_layers):
 			if i == 0:
@@ -34,6 +35,11 @@ class Discriminator(nn.Module):
 			else:
 				self.module_list.append(nn.Linear(self.hidden_dim, self.hidden_dim))
 
+			if self.bn[i]:
+				if i != self.num_layers-1:
+					self.module_list.append(nn.BatchNorm1d(self.hidden_dim))
+				else:
+					self.module_list.append(nn.BatchNorm1d(self.out_dim))
 			if i != self.num_layers-1:
 				self.module_list.append(nn.LeakyReLU(0.2, True)) 
 
@@ -102,7 +108,7 @@ class FactorVAE(nn.Module):
 			if self.decoder_bn[i]:
 				decoder_modules.append(nn.BatchNorm2d(out_channels))
 			if i != self.decoder_num_layers-1:
-				decoder_modules.append(nn.ReLU())
+				decoder_modules.append(nn.ReLU(inplace=True))
 
 		self.encoder = nn.Sequential(*encoder_modules)
 		self.decoder = nn.Sequential(*decoder_modules)

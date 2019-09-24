@@ -20,7 +20,7 @@ class FactorVAETrainer(Trainer):
 		self.vae_optimizer = self.get_optimizer(self.vae_model.parameters(), config['train']['optim'], 
 			config['train']['lr_vae'])
 		self.discriminator_optimizer = self.get_optimizer(self.discriminator.parameters(), config['train']['optim'], 
-			config['train']['lr_discriminator'])
+			config['train']['lr_discriminator'], betas=(0.5,0.9))
 		self.train_loader = self.get_data_loader(config['data'], train=True)
 		self.val_loader = self.get_data_loader(config['data'], train=False)
 		self.batch_size = self.train_loader.batch_size
@@ -83,11 +83,13 @@ class FactorVAETrainer(Trainer):
 
 		return total_vae_loss, recon_loss, z
 
-	def discriminator_forward_pass(self, img_2, z):
+	def discriminator_forward_pass(self, img_2, img_1):
 
 		z_prime = self.vae_model(img_2, no_decoder=True)
 		z_perm = permute_dims(z_prime).detach()
 		D_z_perm = self.discriminator(z_perm)
+
+		z = self.vae_model(img_1, no_decoder=True)
 		D_z = self.discriminator(z)
 
 		discriminator_loss = 0.5*(F.cross_entropy(D_z, self.zeros) + F.cross_entropy(D_z_perm, self.ones))
@@ -101,15 +103,15 @@ class FactorVAETrainer(Trainer):
 			for (nbatch, data) in pbar:
 				img_1, img_2 = data
 				img_1, img_2 = img_1.to(self.device), img_2.to(self.device)
-				self.vae_optimizer.zero_grad()
 
 				total_vae_loss, recon_loss, z = self.vae_forward_pass(img_1)
 				# if epoch%self.log_result_step == 0 and nbatch == 0:
 				# 	self.save_results(epoch, img_recon)
+				self.vae_optimizer.zero_grad()
 				total_vae_loss.backward(retain_graph=False)
 				self.vae_optimizer.step()
 
-				discriminator_loss = self.discriminator_forward_pass(img_2, z.detach())
+				discriminator_loss = self.discriminator_forward_pass(img_2, img_1)
 				self.discriminator_optimizer.zero_grad()
 				discriminator_loss.backward()
 				self.discriminator_optimizer.step()

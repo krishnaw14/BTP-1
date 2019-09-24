@@ -33,9 +33,9 @@ class Trainer(object):
 		os.makedirs(self.param_save_dir, exist_ok=True)
 		os.makedirs(self.log_result_dir, exist_ok=True)
 	
-	def get_optimizer(self, parameters, optim_name, lr):
+	def get_optimizer(self, parameters, optim_name, lr, betas = (0.9, 0.999)):
 		if optim_name == 'adam':
-			return torch.optim.Adam(parameters, lr=lr)
+			return torch.optim.Adam(parameters, lr=lr, betas=betas)
 
 	def load_dataset(self, dataset_name, dataset_path):
 		if dataset_name == 'mnist':
