@@ -1,35 +1,45 @@
 model:
+  save_dir: saved_models/FactorVAE
+  checkpoint: No checkpoint
+  save_interval: 5
   z_dim: 10
   img_channels: 1
   gamma: 6.4
+  init_mode: normal_init
   encoder:
     num_layers: 5
     channels: [28,28,56,118,20]
     kernel_sizes: [4,4,4,4,1]
     strides: [2,2,2,2,1]
     padding: [1,1,1,1,0]
+    batch_norm: [True, True, True, True, False]
   decoder:
     num_layers: 6 
-    channels: [118,56,56,28,28,1]
+    channels: [118,118,56,28,28,1]
     kernel_sizes: [1,4,4,4,4,4]
-    strides: [1,1,2,2,2,2]
-    padding: [0,0,1,1,1,1]
+    strides: [1,2,2,1,2,2]
+    padding: [0,1,1,0,1,1]
+    batch_norm: [True, True, True, True, True, False]
   discriminator:
     num_layers: 6
     hidden_dim: 1000
+    out_dim: 2
 
 data:
   name: mnist
   root: data/
   img_size: 28
   img_channels: 1
+  batch_size: 32
 
 train:
   num_epochs: 10
-  learning_rate_vae: 1.0e-3
-  learning_rate_discriminator: 1.0e-3
-  optimizer: adam
+  lr_vae: 1.0e-3
+  lr_discriminator: 1.0e-3
+  optim: adam
+  log_interval: 1
+  log_result_dir: Reconstructions/FactorVAE
 
 val:
-  epoch_step: 15
+  interval_step: 15
 

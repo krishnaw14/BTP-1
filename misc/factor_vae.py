@@ -1,8 +1,11 @@
 import torch
 import torch.nn.functional as F
 from torchvision.datasets import ImageFolder
+from torchvision.datasets import ImageFolder, MNIST
+from torchvision import transforms
 
-import torchvision.datasets as datasets
+from PIL import Image
+import random
 
 def kl_divergence(mu, logvar):
 	kld = -0.5*(1+logvar-mu**2-logvar.exp()).sum(1).mean()
@@ -19,9 +22,9 @@ def permute_dims(z):
 
 	return torch.cat(perm_z,1)
 
-class MNISTData(datasets.MNIST):
+class MNISTData(MNIST):
 	def __init__(self, root, train=True, download=True, transform=None):
-		super(MNISTData, self).__init__(root, transform)
+		super(MNISTData, self).__init__(root, transform=transform, train=train, download=download)
 		self.indices = range(len(self))
 
 	def __getitem__(self, index_1):
@@ -38,7 +41,7 @@ class MNISTData(datasets.MNIST):
 
 		return img_1, img_2
 
-class CustomImageFolder(Image):
+class CustomImageFolder(ImageFolder):
 	def __init__(self, root, transform=None):
 		super(CustomImageFolder, self).__init__(root,transform)
 		self.indices = range(len(self))
@@ -65,7 +68,7 @@ def get_data(data_config):
 
 	if data_config['name'] == 'mnist':
 		train_data = MNISTData(root=data_config['root'], train=True, download=True, transform=transform)
-		val_data = MNISTData(root=root, train=False, download=True, transform=transform)
+		val_data = MNISTData(root=data_config['root'], train=False, download=True, transform=transform)
 	else:
 		train_data = CustomImageFolder(data_config['train_dir'], transform=transform)
 		val_data = CustomImageFolder(data_config['val_dir'], transform=transform)

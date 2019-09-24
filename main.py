@@ -32,7 +32,7 @@ if __name__ == '__main__':
 		model = Glow(config).to(device)
 		trainer = GlowTrainer(model, config)
 	elif args.model == 'factorvae':
-		vae_model = FactorVAE(config).to(device)
+		vae_model = FactorVAE(config, device).to(device)
 		discriminator = Discriminator(config).to(device)
 		trainer = FactorVAETrainer(vae_model, discriminator, config, device)
 	

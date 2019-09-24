@@ -1,5 +1,6 @@
 import torch 
 import torch.nn as nn 
+import torch.nn.init as init
 
 def weight_init(m, init_mode='normal_init'):
 	if isinstance(m, (nn.Linear, nn.Conv2d)):
@@ -27,16 +28,18 @@ class Discriminator(nn.Module):
 		self.module_list = nn.ModuleList()
 		for i in range(self.num_layers):
 			if i == 0:
-				self.module_list.append(nn.Linear(z_dim, self.hidden_dim))
+				self.module_list.append(nn.Linear(self.z_dim, self.hidden_dim))
 			elif i == self.num_layers-1:
 				self.module_list.append(nn.Linear(self.hidden_dim, self.out_dim))
 			else:
 				self.module_list.append(nn.Linear(self.hidden_dim, self.hidden_dim))
 
 			if i != self.num_layers-1:
-				self.module_list.append(nn.LeakuReLU(0.2, True)) 
+				self.module_list.append(nn.LeakyReLU(0.2, True)) 
 
 		self.net = nn.Sequential(*self.module_list)
+
+		self.init_mode = config['model']['init_mode']
 		self.weight_init()
 
 	def weight_init(self):
@@ -92,7 +95,10 @@ class FactorVAE(nn.Module):
 			stride = self.decoder_strides[i]
 			padding = self.decoder_padding[i]
 
-			decoder_modules.append(nn.ConvTranspose2d(in_channels, out_channels, kernel_size=kernel_size, stride=stride, padding=padding))
+			if i==0:
+				decoder_modules.append(nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, stride=stride, padding=padding))
+			else:
+				decoder_modules.append(nn.ConvTranspose2d(in_channels, out_channels, kernel_size=kernel_size, stride=stride, padding=padding))
 			if self.decoder_bn[i]:
 				decoder_modules.append(nn.BatchNorm2d(out_channels))
 			if i != self.decoder_num_layers-1:
@@ -101,6 +107,7 @@ class FactorVAE(nn.Module):
 		self.encoder = nn.Sequential(*encoder_modules)
 		self.decoder = nn.Sequential(*decoder_modules)
 
+		self.init_mode = config['model']['init_mode']
 		self.weight_init()
 
 	def weight_init(self):
@@ -123,7 +130,7 @@ class FactorVAE(nn.Module):
 	def reparameterize(self, mu, logvar):
 		std = logvar.mul(0.5).exp_()
 		eps = std.data.new(std.size()).normal_()
-		z = mu + std*esp
+		z = mu + std*eps
 		return z
 
 	def forward(self, x, no_decoder=False):
@@ -131,7 +138,7 @@ class FactorVAE(nn.Module):
 		mu, logvar = encoder_out[:, :self.z_dim], encoder_out[:,self.z_dim:]
 		z = self.reparameterize(mu, logvar)
 		if no_decoder:
-			return z
+			return z.squeeze()
 		xrecon = self.decoder(z)
 
 		return xrecon, mu, logvar, z.squeeze()
