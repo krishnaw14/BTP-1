@@ -48,7 +48,7 @@ class Classifier(nn.Module):
 		self.net = nn.Sequential(*self.module_list)
 
 		self.init_mode = config['model']['init_mode']
-		self.weight_init()
+		# self.weight_init()
 
 	def weight_init(self):
 		for block in self._modules:
@@ -62,7 +62,7 @@ class Classifier(nn.Module):
 class ClassifierVAE(nn.Module):
 
 	def __init__(self, config, device):
-		super(FactorVAE, self).__init__()
+		super(ClassifierVAE, self).__init__()
 
 		self.z_dim = config['model']['z_dim']
 		self.img_channels = config['model']['img_channels']
@@ -119,10 +119,10 @@ class ClassifierVAE(nn.Module):
 
 		self.encoder = nn.Sequential(*encoder_modules)
 		self.decoder = nn.Sequential(*decoder_modules)
-		self.classifier = Classifier(config)
+		# self.classifier = Classifier(config)
 
 		self.init_mode = config['model']['init_mode']
-		self.weight_init()
+		# self.weight_init()
 
 	def weight_init(self):
 		for block in self._modules:
@@ -155,6 +155,6 @@ class ClassifierVAE(nn.Module):
 			return z.squeeze()
 		xrecon = self.decoder(z)
 
-		Cz = self.classifier(z.squeeze())
+		# Cz = self.classifier(z.squeeze())
 
-		return xrecon, mu, logvar, z.squeeze(), Cz
+		return xrecon, mu, logvar, z.squeeze()

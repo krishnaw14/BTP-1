@@ -22,7 +22,7 @@ class FactorVAETrainer(Trainer):
 		self.discriminator_optimizer = self.get_optimizer(self.discriminator.parameters(), config['train']['optim'], 
 			config['train']['lr_discriminator'], betas=(0.5,0.9))
 		self.train_loader = self.get_data_loader(config['data'], train=True)
-		self.val_loader = self.get_data_loader(config['data'], train=False)
+		# self.val_loader = self.get_data_loader(config['data'], train=False)
 		self.batch_size = self.train_loader.batch_size
 		self.num_epochs = config['train']['num_epochs']
 		self.val_step = config['val']['interval_step']
@@ -83,13 +83,13 @@ class FactorVAETrainer(Trainer):
 
 		return total_vae_loss, recon_loss, z
 
-	def discriminator_forward_pass(self, img_2, img_1):
+	def discriminator_forward_pass(self, img_2, z):
 
 		z_prime = self.vae_model(img_2, no_decoder=True)
 		z_perm = permute_dims(z_prime).detach()
 		D_z_perm = self.discriminator(z_perm)
 
-		z = self.vae_model(img_1, no_decoder=True)
+		# z = self.vae_model(img_1, no_decoder=True)
 		D_z = self.discriminator(z)
 
 		discriminator_loss = 0.5*(F.cross_entropy(D_z, self.zeros) + F.cross_entropy(D_z_perm, self.ones))
@@ -108,12 +108,12 @@ class FactorVAETrainer(Trainer):
 				# if epoch%self.log_result_step == 0 and nbatch == 0:
 				# 	self.save_results(epoch, img_recon)
 				self.vae_optimizer.zero_grad()
-				total_vae_loss.backward(retain_graph=False)
+				total_vae_loss.backward(retain_graph=True)
 				self.vae_optimizer.step()
 
-				discriminator_loss = self.discriminator_forward_pass(img_2, img_1)
+				discriminator_loss = self.discriminator_forward_pass(img_2, z)
 				self.discriminator_optimizer.zero_grad()
-				discriminator_loss.backward()
+				discriminator_loss.backward(retain_graph=False)
 				self.discriminator_optimizer.step()
 
 				epoch_vae_loss += total_vae_loss

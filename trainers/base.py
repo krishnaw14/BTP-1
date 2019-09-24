@@ -14,11 +14,11 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class Trainer(object):
 
-	def __init__(self, model, config):
+	def __init__(self, model, config, device):
 		self.model = model
 		self.optimizer = self.get_optimizer(self.model.parameters(), config['train']['optim'], config['train']['lr'])
-		self.train_loader = self.get_data_loader(config['data']['name'], config['data']['path'], config['train']['batch_size'], train=True)
-		self.val_loader = self.get_data_loader(config['data']['name'], config['data']['path'], config['val']['batch_size'], train=False)
+		self.train_loader = self.get_data_loader(config['data']['name'], config['data']['root'], config['data']['batch_size'], train=True)
+		self.val_loader = self.get_data_loader(config['data']['name'], config['data']['root'], config['data']['batch_size'], train=False)
 		self.num_epochs = config['train']['num_epochs']
 		self.val_step = config['val']['interval_step']
 
@@ -32,6 +32,9 @@ class Trainer(object):
 
 		os.makedirs(self.param_save_dir, exist_ok=True)
 		os.makedirs(self.log_result_dir, exist_ok=True)
+
+		self.device = device
+		self.iters_per_epoch = np.ceil(self.train_loader.dataset.data.shape[0]/self.train_loader.batch_size)
 	
 	def get_optimizer(self, parameters, optim_name, lr, betas = (0.9, 0.999)):
 		if optim_name == 'adam':
@@ -59,11 +62,11 @@ class Trainer(object):
 			return DataLoader(self.val_dataset, batch_size=batch_size,
 				shuffle=True, pin_memory=True)
 
-	def save_checkpoint(self, epoch, total_loss, recon_loss, is_best=False):
+	def save_checkpoint(self, epoch, total_loss, is_best=False):
 		torch.save({
 			'model_state_dict': self.model.state_dict(),
 			'optimizer_state_dict': self.optimizer.state_dict(),
-			'total_loss': total_loss, 'recon_loss': recon_loss,
+			'total_loss': total_loss, 
 			'is_best': is_best
 			}, os.path.join(self.param_save_dir, 'epoch_{}.tar'.format(epoch))
 			)
@@ -74,12 +77,12 @@ class Trainer(object):
 			self.model.load_state_dict(checkpoint['model_state_dict'])
 			self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
+	def save_results(self, img_recon):
+		save_image(img_recon, os.path.join(self.log_result_dir, 'epoch_{}.png'.format(epoch)), nrow=8, normalize=True)
+
 	def forward_pass(self):
-		pass	
-
-	def save_results(self):
 		pass
-
+			
 	def train(self):
 		pass
 

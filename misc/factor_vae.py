@@ -1,11 +1,13 @@
 import torch
 import torch.nn.functional as F
+from torch.utils.data import Dataset
 from torchvision.datasets import ImageFolder
 from torchvision.datasets import ImageFolder, MNIST
 from torchvision import transforms
 
 from PIL import Image
 import random
+import numpy as np 
 
 def kl_divergence(mu, logvar):
 	kld = -0.5*(1+logvar-mu**2-logvar.exp()).sum(1).mean()
@@ -59,6 +61,28 @@ class CustomImageFolder(ImageFolder):
 
 		return img_1, img_2
 
+class CustomTensorDataset(Dataset):
+	def __init__(self, data_tensor, transform=None):
+		# super()
+		self.data_tensor = data_tensor
+		self.transform = transform
+
+		self.indices = range(self.data_tensor.size()[0])
+
+	def __getitem__(self, index1):
+		index2 = random.choice(self.indices)
+
+		img1 = self.data_tensor[index1]
+		img2 = self.data_tensor[index2]
+		if self.transform is not None:
+			img1 = self.transform(img1)
+			img2 = self.transform(img2)
+
+		return img1, img2
+
+	def __len__(self):
+		return self.data_tensor.size()[0]
+
 def get_data(data_config):
 
 	transform = transforms.Compose([
@@ -69,6 +93,13 @@ def get_data(data_config):
 	if data_config['name'] == 'mnist':
 		train_data = MNISTData(root=data_config['root'], train=True, download=True, transform=transform)
 		val_data = MNISTData(root=data_config['root'], train=False, download=True, transform=transform)
+	elif data_config['name'] == 'dsprites':
+		data = np.load(data_config['root'], encoding='latin1')
+		data = torch.from_numpy(data['imgs']).unsqueeze(1).float()
+		dataset = CustomTensorDataset(data)
+		train_data = dataset
+		val_data = None
+
 	else:
 		train_data = CustomImageFolder(data_config['train_dir'], transform=transform)
 		val_data = CustomImageFolder(data_config['val_dir'], transform=transform)

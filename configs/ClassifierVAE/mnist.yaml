@@ -4,7 +4,7 @@ model:
   save_interval: 5
   z_dim: 10
   img_channels: 1
-  gamma: 2
+  gamma: 0.5
   init_mode: normal_init
   encoder:
     num_layers: 5
@@ -20,7 +20,7 @@ model:
     strides: [1,2,2,1,2,2]
     padding: [0,1,1,0,1,1]
     batch_norm: [True, True, True, True, True, False]
-  discriminator:
+  classifier:
     num_layers: 6
     hidden_dim: 100
     out_dim: 10
@@ -36,6 +36,7 @@ data:
 train:
   num_epochs: 10
   lr: 1.0e-4
+  c_lr: 1.0e-5
   optim: adam
   log_interval: 1
   log_result_dir: Reconstructions/ClassifierVAE

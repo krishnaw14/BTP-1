@@ -6,6 +6,8 @@ from trainers.vq_vae_pytorch import VQVAETrainer
 from models.vq_vae_pytorch import VQVAE
 from trainers.factor_vae import FactorVAETrainer
 from models.factor_vae import FactorVAE, Discriminator
+from trainers.classifier_vae import ClassifierVAETrainer
+from models.classifier_vae import ClassifierVAE, Classifier
 
 from utils import read_yaml
 
@@ -35,5 +37,9 @@ if __name__ == '__main__':
 		vae_model = FactorVAE(config, device).to(device)
 		discriminator = Discriminator(config).to(device)
 		trainer = FactorVAETrainer(vae_model, discriminator, config, device)
+	elif args.model == 'classifiervae':
+		model = ClassifierVAE(config, device).to(device)
+		classifier = Classifier(config).to(device)
+		trainer = ClassifierVAETrainer(model, classifier, config, device)
 	
 	trainer.train()
