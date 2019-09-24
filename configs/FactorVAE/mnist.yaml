@@ -1,0 +1,35 @@
+model:
+  z_dim: 10
+  img_channels: 1
+  gamma: 6.4
+  encoder:
+    num_layers: 5
+    channels: [28,28,56,118,20]
+    kernel_sizes: [4,4,4,4,1]
+    strides: [2,2,2,2,1]
+    padding: [1,1,1,1,0]
+  decoder:
+    num_layers: 6 
+    channels: [118,56,56,28,28,1]
+    kernel_sizes: [1,4,4,4,4,4]
+    strides: [1,1,2,2,2,2]
+    padding: [0,0,1,1,1,1]
+  discriminator:
+    num_layers: 6
+    hidden_dim: 1000
+
+data:
+  name: mnist
+  root: data/
+  img_size: 28
+  img_channels: 1
+
+train:
+  num_epochs: 10
+  learning_rate_vae: 1.0e-3
+  learning_rate_discriminator: 1.0e-3
+  optimizer: adam
+
+val:
+  epoch_step: 15
+

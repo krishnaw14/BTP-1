@@ -16,7 +16,7 @@ class Trainer(object):
 
 	def __init__(self, model, config):
 		self.model = model
-		self.optimizer = self.get_optimizer(config['train']['optim'], config['train']['lr'])
+		self.optimizer = self.get_optimizer(self.model.parameters(), config['train']['optim'], config['train']['lr'])
 		self.train_loader = self.get_data_loader(config['data']['name'], config['data']['path'], config['train']['batch_size'], train=True)
 		self.val_loader = self.get_data_loader(config['data']['name'], config['data']['path'], config['val']['batch_size'], train=False)
 		self.num_epochs = config['train']['num_epochs']
@@ -27,14 +27,15 @@ class Trainer(object):
 		self.log_result_step = config['train']['log_interval']
 		self.log_result_dir = config['train']['log_result_dir']
 		
-		self.load_checkpoint(config['model']['checkpoint'])
+		if self.model is not None:
+			self.load_checkpoint(config['model']['checkpoint'])
 
 		os.makedirs(self.param_save_dir, exist_ok=True)
 		os.makedirs(self.log_result_dir, exist_ok=True)
 	
-	def get_optimizer(self, optim_name, lr):
+	def get_optimizer(self, parameters, optim_name, lr):
 		if optim_name == 'adam':
-			return torch.optim.Adam(self.model.parameters(), lr=lr)
+			return torch.optim.Adam(parameters, lr=lr)
 
 	def load_dataset(self, dataset_name, dataset_path):
 		if dataset_name == 'mnist':

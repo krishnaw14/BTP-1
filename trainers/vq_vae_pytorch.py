@@ -132,8 +132,6 @@ class VQVAETrainer(object):
 				self.validate()
 			if epoch%self.save_param_step == 0:
 				self.save_checkpoint(epoch, total_loss, recon_loss)
-			# if epoch%self.siamese_step == 0:
-			# 	self.
 
 
 	def validate(self):

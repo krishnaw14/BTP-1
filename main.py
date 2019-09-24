@@ -4,6 +4,9 @@ import torch
 
 from trainers.vq_vae_pytorch import VQVAETrainer
 from models.vq_vae_pytorch import VQVAE
+from trainers.factor_vae import FactorVAETrainer
+from models.factor_vae import FactorVAE, Discriminator
+
 from utils import read_yaml
 
 def get_parser():
@@ -22,11 +25,15 @@ if __name__ == '__main__':
 	device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 	config = read_yaml(args.config_path)
-	if args.model -- 'vqvae':
+	if args.model == 'vqvae':
 		model = VQVAE(config).to(device)
 		trainer = VQVAETrainer(model, config)
-	else:
+	elif args.model == 'glow':
 		model = Glow(config).to(device)
 		trainer = GlowTrainer(model, config)
+	elif args.model == 'factorvae':
+		vae_model = FactorVAE(config).to(device)
+		discriminator = Discriminator(config).to(device)
+		trainer = FactorVAETrainer(vae_model, discriminator, config, device)
 	
 	trainer.train()

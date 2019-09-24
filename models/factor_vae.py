@@ -101,6 +101,13 @@ class FactorVAE(nn.Module):
 		self.encoder = nn.Sequential(*encoder_modules)
 		self.decoder = nn.Sequential(*decoder_modules)
 
+		self.weight_init()
+
+	def weight_init(self):
+		for block in self._modules:
+			for m in self._modules[block]:
+				weight_init(m, init_mode=self.init_mode)	
+
 	def encode(self, x):
 		h = self.encoder(x)
 		h = h.view(z.size(0), -1)
@@ -119,10 +126,12 @@ class FactorVAE(nn.Module):
 		z = mu + std*esp
 		return z
 
-	def forward(self, x):
+	def forward(self, x, no_decoder=False):
 		encoder_out = self.encoder(x)
 		mu, logvar = encoder_out[:, :self.z_dim], encoder_out[:,self.z_dim:]
 		z = self.reparameterize(mu, logvar)
-		xrecon = self.decode(z)
+		if no_decoder:
+			return z
+		xrecon = self.decoder(z)
 
 		return xrecon, mu, logvar, z.squeeze()
