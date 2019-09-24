@@ -3,3 +3,4 @@ data/
 reconstructions/
 saved_models/
 __pycache__
+._.DS_Store
