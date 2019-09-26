@@ -9,5 +9,7 @@ Baselines:
 
 - [x] VQ-VAE
 - [ ] VQ-VAE with Siamere
-- [ ] Factor VAE 
-- [ ] Factor VAE with a classifier
+- [x] Factor VAE 
+- [x] Classifier VAE
+- [ ] Classifier VAE vs Factor VAE comparison
+- [ ] Conditional Factor VAE (with style transfer maybe)
