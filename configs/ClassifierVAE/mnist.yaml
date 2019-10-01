@@ -2,9 +2,11 @@ model:
   save_dir: saved_models/ClassifierVAE
   checkpoint: No checkpoint
   save_interval: 5
-  z_dim: 10
+  z_dim: 5
   img_channels: 1
-  gamma: 0.5
+  gamma: 5.4
+  gamma_update_rate: 0.01
+  # gamma_update_scale: 0.5
   init_mode: normal_init
   encoder:
     num_layers: 5
@@ -12,19 +14,19 @@ model:
     kernel_sizes: [4,4,4,4,1]
     strides: [2,2,2,2,1]
     padding: [1,1,1,1,0]
-    batch_norm: [True, True, True, True, False]
+    batch_norm: [False, False, False, False, False]
   decoder:
     num_layers: 6 
     channels: [128,128,64,32,32,1]
     kernel_sizes: [1,4,4,4,4,4]
     strides: [1,2,2,1,2,2]
     padding: [0,1,1,0,1,1]
-    batch_norm: [True, True, True, True, True, False]
+    batch_norm: [False, False, False, False, False, False]
   classifier:
     num_layers: 6
     hidden_dim: 100
     out_dim: 10
-    bn: [True, True, True, True, True, True]
+    bn: [False, False, False, False, False, False]
 
 data:
   name: mnist
@@ -34,9 +36,9 @@ data:
   batch_size: 32
 
 train:
-  num_epochs: 10
+  num_epochs: 30
   lr: 1.0e-4
-  c_lr: 1.0e-5
+  c_lr: 1.0e-4
   optim: adam
   log_interval: 1
   log_result_dir: Reconstructions/ClassifierVAE

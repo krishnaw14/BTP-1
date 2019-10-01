@@ -43,6 +43,7 @@ class FactorVAETrainer(Trainer):
 
 		self.ones = torch.ones(self.batch_size, dtype=torch.long, device=self.device)
 		self.zeros = torch.zeros(self.batch_size, dtype=torch.long, device=self.device)
+		self.iters_per_epoch = np.ceil(len(self.train_loader.dataset)/self.train_loader.batch_size)
 
 	def get_data_loader(self, data_config, train=True):
 		if train:
@@ -83,21 +84,22 @@ class FactorVAETrainer(Trainer):
 
 		return total_vae_loss, recon_loss, z
 
-	def discriminator_forward_pass(self, img_2, z):
+	def discriminator_forward_pass(self, img_2, img_1):
 
 		z_prime = self.vae_model(img_2, no_decoder=True)
 		z_perm = permute_dims(z_prime).detach()
 		D_z_perm = self.discriminator(z_perm)
 
-		# z = self.vae_model(img_1, no_decoder=True)
+		z = self.vae_model(img_1, no_decoder=True)
 		D_z = self.discriminator(z)
 
 		discriminator_loss = 0.5*(F.cross_entropy(D_z, self.zeros) + F.cross_entropy(D_z_perm, self.ones))
 		return discriminator_loss
 
 	def train(self):
+		# import pdb; pdb.set_trace()
 		for epoch in range(self.num_epochs):
-			pbar = tqdm(enumerate(self.train_loader), desc = 'training batch_loss')
+			pbar = tqdm(enumerate(self.train_loader), desc = 'training batch_loss', total=self.iters_per_epoch)
 			epoch_vae_loss = 0.0
 			epoch_discriminator_loss = 0.0 
 			for (nbatch, data) in pbar:
@@ -108,10 +110,10 @@ class FactorVAETrainer(Trainer):
 				# if epoch%self.log_result_step == 0 and nbatch == 0:
 				# 	self.save_results(epoch, img_recon)
 				self.vae_optimizer.zero_grad()
-				total_vae_loss.backward(retain_graph=True)
+				total_vae_loss.backward(retain_graph=False)
 				self.vae_optimizer.step()
 
-				discriminator_loss = self.discriminator_forward_pass(img_2, z)
+				discriminator_loss = self.discriminator_forward_pass(img_2, img_1)
 				self.discriminator_optimizer.zero_grad()
 				discriminator_loss.backward(retain_graph=False)
 				self.discriminator_optimizer.step()
@@ -119,11 +121,11 @@ class FactorVAETrainer(Trainer):
 				epoch_vae_loss += total_vae_loss
 				epoch_discriminator_loss += discriminator_loss
 
-				pbar.set_description('Epoch: {}, VAE Loss: {}, Discriminator Loss {}, Recon Error: {}'.format(epoch, 
-					total_vae_loss, discriminator_loss, recon_loss))
+				# pbar.set_description('Epoch: {}, VAE Loss: {}, Discriminator Loss {}, Recon Error: {}'.format(epoch, 
+				# 	total_vae_loss, discriminator_loss, recon_loss))
 				
-			avg_epoch_vae_loss = epoch_vae_loss/(self.train_loader.dataset.data.shape[0]//self.train_loader.batch_size)
-			avg_epoch_discriminator_loss = epoch_discriminator_loss/(self.train_loader.dataset.data.shape[0]//self.train_loader.batch_size)
+			avg_epoch_vae_loss = epoch_vae_loss/(self.iters_per_epoch)
+			avg_epoch_discriminator_loss = epoch_discriminator_loss/(self.iters_per_epoch)
 
 			print('Average VAE Loss:', avg_epoch_vae_loss)
 			print('Average Discriminator Loss:', avg_epoch_discriminator_loss)

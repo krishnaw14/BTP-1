@@ -17,8 +17,10 @@ class Trainer(object):
 	def __init__(self, model, config, device):
 		self.model = model
 		self.optimizer = self.get_optimizer(self.model.parameters(), config['train']['optim'], config['train']['lr'])
-		self.train_loader = self.get_data_loader(config['data']['name'], config['data']['root'], config['data']['batch_size'], train=True)
-		self.val_loader = self.get_data_loader(config['data']['name'], config['data']['root'], config['data']['batch_size'], train=False)
+		if config['data']['name'] == 'mnist':
+			self.train_loader = self.get_data_loader(config['data']['name'], config['data']['root'], config['data']['batch_size'], train=True)
+			self.val_loader = self.get_data_loader(config['data']['name'], config['data']['root'], config['data']['batch_size'], train=False)
+			self.iters_per_epoch = np.ceil(self.train_loader.dataset.data.shape[0]/self.train_loader.batch_size)
 		self.num_epochs = config['train']['num_epochs']
 		self.val_step = config['val']['interval_step']
 
@@ -34,7 +36,6 @@ class Trainer(object):
 		os.makedirs(self.log_result_dir, exist_ok=True)
 
 		self.device = device
-		self.iters_per_epoch = np.ceil(self.train_loader.dataset.data.shape[0]/self.train_loader.batch_size)
 	
 	def get_optimizer(self, parameters, optim_name, lr, betas = (0.9, 0.999)):
 		if optim_name == 'adam':

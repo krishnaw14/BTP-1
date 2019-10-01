@@ -62,26 +62,27 @@ class CustomImageFolder(ImageFolder):
 		return img_1, img_2
 
 class CustomTensorDataset(Dataset):
-	def __init__(self, data_tensor, transform=None):
+	def __init__(self, data_tensor, label_tensor, transform=None):
 		# super()
-		self.data_tensor = data_tensor
+		self.data = data_tensor
+		self.label_tensor = label_tensor
 		self.transform = transform
 
-		self.indices = range(self.data_tensor.size()[0])
+		self.indices = range(self.data.size()[0])
 
-	def __getitem__(self, index1):
-		index2 = random.choice(self.indices)
+	def __getitem__(self, idx):
+		# index2 = random.choice(self.indices)
 
-		img1 = self.data_tensor[index1]
-		img2 = self.data_tensor[index2]
-		if self.transform is not None:
-			img1 = self.transform(img1)
-			img2 = self.transform(img2)
+		# img1 = self.data_tensor[index1]
+		# img2 = self.data_tensor[index2]
+		# if self.transform is not None:
+		# 	img1 = self.transform(img1)
+		# 	img2 = self.transform(img2)
 
-		return img1, img2
+		return self.data[idx], self.label_tensor[idx]
 
 	def __len__(self):
-		return self.data_tensor.size()[0]
+		return self.data.size()[0]
 
 def get_data(data_config):
 
@@ -95,8 +96,10 @@ def get_data(data_config):
 		val_data = MNISTData(root=data_config['root'], train=False, download=True, transform=transform)
 	elif data_config['name'] == 'dsprites':
 		data = np.load(data_config['root'], encoding='latin1')
-		data = torch.from_numpy(data['imgs']).unsqueeze(1).float()
-		dataset = CustomTensorDataset(data, classification_label)
+		img_data = torch.from_numpy(data['imgs']).unsqueeze(1).float()
+		classification_label = torch.from_numpy(data['latents_classes'])
+		# import pdb; pdb.set_trace()
+		dataset = CustomTensorDataset(img_data, classification_label)
 		train_data = dataset
 		val_data = None
 
