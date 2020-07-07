@@ -1,15 +1,12 @@
-# BTP
-## Generative Models
+# BTP: Repository 1
 
-Broadly, I am improving on disentangled representation and improving the controllability of generative models. 
+## Experiments on Controllable Generative Models
 
-### Work Done
+Work continued in other repositories
 
-Baselines:
+## Baselines:
 
-- [x] VQ-VAE
-- [ ] VQ-VAE with Siamere
-- [x] Factor VAE 
-- [x] Classifier VAE
-- [ ] Classifier VAE vs Factor VAE comparison
-- [ ] Conditional Factor VAE (with style transfer maybe)
+- VQ-VAE
+- VQ-VAE with Siamere
+- Factor VAE 
+- VAE with classifier trained on the latent representation
